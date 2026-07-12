@@ -1,4 +1,4 @@
-const CACHE = 'fincontrol-v1';
+const CACHE = 'fincontrol-v2';
 const ASSETS = [
   '/',
   '/static/css/style.css',
