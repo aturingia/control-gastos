@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#FF6B35">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="FinControl">
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/static/icons/icon-192.svg">
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.svg">
+  <title>Control de Gastos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <div class="app">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <i class="fas fa-wallet"></i>
+          <span>FinControl</span>
+        </div>
+        <button class="theme-toggle" id="themeToggle" title="Cambiar tema">
+          <i class="fas fa-moon"></i>
+        </button>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-item active">
+          <i class="fas fa-chart-pie"></i>
+          <span>Dashboard</span>
+        </div>
+        <div class="nav-item">
+          <i class="fas fa-upload"></i>
+          <span>Cargar Datos</span>
+        </div>
+      </div>
+      <div class="upload-area" id="uploadArea">
+        <div class="upload-icon">
+          <i class="fas fa-cloud-upload-alt"></i>
+        </div>
+        <p class="upload-text">Arrastra tu archivo aquí</p>
+        <p class="upload-sub">o haz clic para seleccionar</p>
+        <p class="upload-formats">XLSX o CSV</p>
+        <input type="file" id="fileInput" accept=".xlsx,.csv" hidden>
+        <div class="upload-progress" id="uploadProgress" hidden>
+          <div class="progress-bar"></div>
+        </div>
+      </div>
+      <div class="file-info" id="fileInfo" hidden>
+        <i class="fas fa-file-excel"></i>
+        <span id="fileName">archivo.xlsx</span>
+        <span class="file-badge" id="fileCount">0 reg.</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="menu-toggle" id="menuToggle" title="Menú">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h1 class="page-title">Dashboard Financiero</h1>
+          <p class="page-subtitle" id="pageSubtitle">Resumen de tus finanzas personales</p>
+        </div>
+        <div class="topbar-right">
+          <div class="period-selector">
+            <button class="period-btn active" data-periodo="mensual">Mensual</button>
+            <button class="period-btn" data-periodo="semanal">Semanal</button>
+          </div>
+          <div class="month-selector">
+            <button class="month-nav" id="prevMonth"><i class="fas fa-chevron-left"></i></button>
+            <span class="month-label" id="monthLabel">Julio 2026</span>
+            <button class="month-nav" id="nextMonth"><i class="fas fa-chevron-right"></i></button>
+          </div>
+          <button class="btn btn-primary" id="exportPdf">
+            <i class="fas fa-file-pdf"></i> Exportar PDF
+          </button>
+        </div>
+      </header>
+
+      <div class="content" id="mainContent">
+        <div class="empty-state" id="emptyState">
+          <div class="empty-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <h2>Bienvenido a FinControl</h2>
+          <p>Carga un archivo XLSX o CSV con tus transacciones para comenzar</p>
+          <p class="empty-hint">Columnas esperadas: <strong>Fecha</strong>, <strong>Concepto</strong>, <strong>Ingreso</strong>, <strong>Egreso</strong></p>
+          <button class="btn btn-primary btn-lg" id="emptyUploadBtn">
+            <i class="fas fa-upload"></i> Cargar Archivo
+          </button>
+        </div>
+
+        <div id="dashboardContent" hidden>
+          <div class="kpi-grid">
+            <div class="kpi-card card-ingresos">
+              <div class="kpi-icon"><i class="fas fa-arrow-down"></i></div>
+              <div class="kpi-info">
+                <span class="kpi-label">Ingresos</span>
+                <span class="kpi-value" id="kpiIngresos">$0.00</span>
+              </div>
+              <div class="kpi-trend positive"><i class="fas fa-arrow-up"></i></div>
+            </div>
+            <div class="kpi-card card-gastos">
+              <div class="kpi-icon"><i class="fas fa-arrow-up"></i></div>
+              <div class="kpi-info">
+                <span class="kpi-label">Gastos</span>
+                <span class="kpi-value" id="kpiGastos">$0.00</span>
+              </div>
+              <div class="kpi-trend negative"><i class="fas fa-arrow-down"></i></div>
+            </div>
+            <div class="kpi-card card-balance">
+              <div class="kpi-icon"><i class="fas fa-wallet"></i></div>
+              <div class="kpi-info">
+                <span class="kpi-label">Balance</span>
+                <span class="kpi-value" id="kpiBalance">$0.00</span>
+              </div>
+            </div>
+            <div class="kpi-card card-promedio">
+              <div class="kpi-icon"><i class="fas fa-calendar-day"></i></div>
+              <div class="kpi-info">
+                <span class="kpi-label">Prom. Diario</span>
+                <span class="kpi-value" id="kpiPromedio">$0.00</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="charts-grid">
+            <div class="card chart-card">
+              <div class="card-header">
+                <h3>Gastos por Categoría</h3>
+                <div class="card-actions">
+                  <i class="fas fa-ellipsis-v"></i>
+                </div>
+              </div>
+              <div class="card-body chart-container">
+                <canvas id="donutChart"></canvas>
+              </div>
+            </div>
+            <div class="card chart-card">
+              <div class="card-header">
+                <h3>Evolución Ingresos vs Gastos</h3>
+                <div class="card-actions">
+                  <i class="fas fa-ellipsis-v"></i>
+                </div>
+              </div>
+              <div class="card-body chart-container">
+                <canvas id="lineChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="card transactions-card">
+            <div class="card-header">
+              <h3>Transacciones Recientes</h3>
+              <div class="card-filters">
+                <input type="text" class="search-input" id="searchInput" placeholder="Buscar transacción...">
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="table-wrapper">
+                <table class="transactions-table" id="transactionsTable">
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Concepto</th>
+                      <th>Categoría</th>
+                      <th>Ingreso</th>
+                      <th>Egreso</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="/static/js/theme.js"></script>
+  <script src="/static/js/charts.js"></script>
+  <script src="/static/js/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>
