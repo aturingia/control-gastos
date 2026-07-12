@@ -6,6 +6,8 @@ const CHART_COLORS = {
   prestamos: '#FFD166',
   trabajo: '#8338EC',
   sueldo: '#2ECC71',
+  refacciones: '#E76F51',
+  alquiler: '#457B9D',
   otros: '#9090a8'
 };
 
