@@ -8,6 +8,7 @@ const CHART_COLORS = {
   sueldo: '#2ECC71',
   refacciones: '#E76F51',
   alquiler: '#457B9D',
+  'e-commerce': '#F4A261',
   otros: '#9090a8'
 };
 

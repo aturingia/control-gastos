@@ -52,6 +52,7 @@ def categorizar(concepto):
         'sueldo': ['salario', 'sueldo', 'nómina', 'nomina'],
         'refacciones': ['refacción', 'refaccion', 'repuesto', 'taller', 'mecánico', 'mecanico', 'llanta', 'reparación', 'reparacion'],
         'alquiler': ['renta', 'alquiler'],
+        'e-commerce': ['ecommerce', 'e-commerce', 'amazon', 'mercado libre', 'mercadolibre', 'shop', 'tienda', 'compra', 'envío', 'envio', 'pedido', 'aliexpress', 'ebay'],
     }
     for cat, palabras in cats.items():
         for p in palabras:
