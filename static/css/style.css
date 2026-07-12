@@ -248,6 +248,45 @@ body {
   white-space: nowrap;
 }
 
+.sidebar-section {
+  padding: 0 1rem;
+  flex-shrink: 0;
+}
+
+.sidebar-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.sidebar-section-header i {
+  font-size: 0.75rem;
+}
+
+.categorias-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.categoria-chip {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
 .file-badge {
   background: var(--accent);
   color: white;
@@ -656,6 +695,7 @@ body {
 .category-badge.refacciones { background: rgba(231, 111, 81, 0.15); color: #E76F51; }
 .category-badge.alquiler { background: rgba(69, 123, 157, 0.15); color: #457B9D; }
 .category-badge.e-commerce { background: rgba(244, 162, 97, 0.15); color: #F4A261; }
+.category-badge.insumos { background: rgba(26, 188, 156, 0.15); color: #1ABC9C; }
 .category-badge.otros { background: rgba(144, 144, 168, 0.15); color: var(--text-secondary); }
 
 .toast {

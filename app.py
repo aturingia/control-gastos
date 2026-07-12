@@ -2,7 +2,7 @@ import os, json
 import pandas as pd
 from flask import Flask, request, jsonify, send_file, render_template, send_from_directory
 from werkzeug.utils import secure_filename
-from data_handler import load_data, resumen_por_periodo, meses_disponibles, allowed_file, agregar_categoria
+from data_handler import load_data, resumen_por_periodo, meses_disponibles, allowed_file, agregar_categoria, CATEGORIAS
 from pdf_generator import generar_pdf
 from datetime import datetime
 
@@ -117,6 +117,10 @@ def get_data():
     resumen = resumen_por_periodo(df_global, periodo=periodo, año=año, mes=mes)
     return jsonify(resumen)
 
+@app.route('/api/categorias')
+def get_categorias():
+    return jsonify(CATEGORIAS)
+
 @app.route('/api/meses')
 def get_meses():
     global df_global
@@ -150,4 +154,5 @@ def exportar_pdf():
     )
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000, host='0.0.0.0')
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=True, port=port, host='0.0.0.0')

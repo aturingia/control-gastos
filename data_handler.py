@@ -40,6 +40,12 @@ def load_data(filepath):
     df['semana'] = df['fecha'].dt.isocalendar().week
     return df.dropna(subset=['fecha'])
 
+CATEGORIAS = [
+    'viáticos', 'despensas', 'servicios', 'suntuarios', 'prestamos',
+    'trabajo', 'sueldo', 'refacciones', 'alquiler', 'e-commerce',
+    'insumos', 'otros',
+]
+
 def categorizar(concepto):
     concepto = concepto.lower()
     cats = {
@@ -53,6 +59,7 @@ def categorizar(concepto):
         'refacciones': ['refacción', 'refaccion', 'repuesto', 'taller', 'mecánico', 'mecanico', 'llanta', 'reparación', 'reparacion'],
         'alquiler': ['renta', 'alquiler'],
         'e-commerce': ['ecommerce', 'e-commerce', 'amazon', 'mercado libre', 'mercadolibre', 'shop', 'tienda', 'compra', 'envío', 'envio', 'pedido', 'aliexpress', 'ebay'],
+        'insumos': ['insumo', 'material', 'papelería', 'papeleria', 'oficina', 'suministro', 'consumible', 'tinta', 'toner', 'utensilio'],
     }
     for cat, palabras in cats.items():
         for p in palabras:

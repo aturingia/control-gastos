@@ -79,6 +79,21 @@
       });
   }
 
+  function renderCategorias(categorias) {
+    const container = document.getElementById('categoriasList');
+    if (!container) return;
+    container.innerHTML = categorias.map(c => `<span class="categoria-chip">${c}</span>`).join('');
+  }
+
+  function cargarCategorias() {
+    fetch('/api/categorias')
+      .then(r => r.json())
+      .then(cats => renderCategorias(cats))
+      .catch(() => {});
+  }
+
+  cargarCategorias();
+
   function cargarDatos() {
     if (!state.dataCargada) return Promise.reject('No hay datos');
     const params = new URLSearchParams({
