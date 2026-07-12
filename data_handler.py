@@ -45,11 +45,13 @@ def categorizar(concepto):
     cats = {
         'viáticos': ['viático', 'viaje', 'gasolina', 'taxi', 'vuelo', 'hotel', 'hospedaje', 'transporte', 'uber', 'combustible', 'estacionamiento', 'peaje'],
         'despensas': ['super', 'mercado', 'despensa', 'abarrote', 'fruta', 'verdura', 'carne', 'comida'],
-        'servicios': ['agua', 'luz', 'gas', 'internet', 'teléfono', 'renta', 'alquiler', 'mantenimiento', 'seguro'],
+        'servicios': ['agua', 'luz', 'gas', 'internet', 'teléfono', 'mantenimiento', 'seguro'],
         'suntuarios': ['restaurante', 'cine', 'netflix', 'spotify', 'juego', 'ocio', 'suscripción', 'café', 'bar', 'licor', 'regalo', 'comer'],
         'prestamos': ['préstamo', 'prestamo', 'crédito', 'credito', 'deuda', 'abono'],
         'trabajo': ['honorario', 'freelance', 'proyecto', 'consultoría', 'comisión', 'cliente', 'venta'],
         'sueldo': ['salario', 'sueldo', 'nómina', 'nomina'],
+        'refacciones': ['refacción', 'refaccion', 'repuesto', 'taller', 'mecánico', 'mecanico', 'llanta', 'reparación', 'reparacion'],
+        'alquiler': ['renta', 'alquiler'],
     }
     for cat, palabras in cats.items():
         for p in palabras:
