@@ -653,6 +653,8 @@ body {
 .category-badge.prestamos { background: rgba(255, 209, 102, 0.15); color: var(--yellow); }
 .category-badge.trabajo { background: rgba(131, 56, 236, 0.15); color: var(--purple); }
 .category-badge.sueldo { background: rgba(46, 204, 113, 0.15); color: var(--green); }
+.category-badge.refacciones { background: rgba(231, 111, 81, 0.15); color: #E76F51; }
+.category-badge.alquiler { background: rgba(69, 123, 157, 0.15); color: #457B9D; }
 .category-badge.otros { background: rgba(144, 144, 168, 0.15); color: var(--text-secondary); }
 
 .toast {
