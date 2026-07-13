@@ -215,6 +215,18 @@
     .catch(err => showToast('Error al generar PDF: ' + err.message, 'error'));
   }
 
+  function descargarCSV(csvStr, filename) {
+    const blob = new Blob([csvStr], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   function exportarCSV() {
     if (!state.dataCargada) { showToast('No hay datos para exportar', 'error'); return; }
     fetch('/api/exportar-csv')
@@ -297,7 +309,7 @@
         state.año = ultimo.año;
       }
       actualizarDashboard();
-      if (esNueva) exportarCSV();
+      if (esNueva && data.csv) descargarCSV(data.csv, 'Gastos_Exportados.csv');
     })
     .catch(err => showToast('Error al guardar', 'error'));
   }

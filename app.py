@@ -194,10 +194,12 @@ def crear_transaccion():
             nombre_archivo_actual = 'datos.csv'
         _df_to_cache(df_global, nombre_archivo_actual)
         meses = meses_disponibles(df_global)
+        csv_data = exportar_csv(df_global)
         return jsonify({
             'mensaje': 'Transacción creada',
             'id': int(df_global['id'].max()),
             'meses': meses,
+            'csv': csv_data,
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 400
