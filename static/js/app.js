@@ -286,9 +286,10 @@
     .then(r => r.json())
     .then(data => {
       if (data.error) { showToast('Error: ' + data.error, 'error'); return; }
-      showToast(id ? 'Transacción actualizada' : 'Transacción creada', 'success');
+      const esNueva = !id;
+      showToast(esNueva ? 'Transacción creada' : 'Transacción actualizada', 'success');
       cerrarModal();
-      if (!id && data.meses) {
+      if (esNueva && data.meses) {
         state.dataCargada = true;
         state.mesesDisponibles = data.meses;
         const ultimo = data.meses[data.meses.length - 1];
@@ -296,6 +297,7 @@
         state.año = ultimo.año;
       }
       actualizarDashboard();
+      if (esNueva) exportarCSV();
     })
     .catch(err => showToast('Error al guardar', 'error'));
   }
