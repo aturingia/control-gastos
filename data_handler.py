@@ -118,6 +118,7 @@ def meses_disponibles(df):
 def exportar_csv(df):
     cols = ['fecha', 'concepto', 'ingreso', 'egreso', 'categoria']
     out = df[cols].copy()
+    out['fecha'] = pd.to_datetime(out['fecha'], errors='coerce')
     out['fecha'] = out['fecha'].dt.strftime('%d/%m/%Y')
     return out.to_csv(index=False, encoding='utf-8-sig')
 
