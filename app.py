@@ -2,7 +2,7 @@ import os, json
 import pandas as pd
 from flask import Flask, request, jsonify, send_file, render_template, send_from_directory
 from werkzeug.utils import secure_filename
-from data_handler import load_data, resumen_por_periodo, meses_disponibles, allowed_file, agregar_categoria, CATEGORIAS
+from data_handler import load_data, resumen_por_periodo, meses_disponibles, allowed_file, agregar_categoria, exportar_csv, add_transaccion, update_transaccion, delete_transaccion, CATEGORIAS
 from pdf_generator import generar_pdf
 from datetime import datetime
 
@@ -45,6 +45,10 @@ def _load_cache():
         for col in ['fecha']:
             if col in df.columns:
                 df[col] = pd.to_datetime(df[col], errors='coerce')
+        if 'id' not in df.columns:
+            df['id'] = range(len(df))
+        else:
+            df['id'] = pd.to_numeric(df['id'], errors='coerce', downcast='integer').fillna(0).astype(int)
         for col in ['ingreso', 'egreso', 'monto']:
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
@@ -57,7 +61,8 @@ _load_cache()
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    resp = render_template('index.html')
+    return resp, 200, {'Cache-Control': 'no-cache, no-store, must-revalidate'}
 
 @app.route('/sw.js')
 def service_worker():
@@ -152,6 +157,82 @@ def exportar_pdf():
         as_attachment=True,
         download_name=f'Informe_Gastos_{mes_nombre}_{año_str}.pdf'
     )
+
+@app.route('/api/exportar-csv', methods=['GET'])
+def exportar_csv_endpoint():
+    global df_global
+    if df_global is None:
+        return jsonify({'error': 'No hay datos cargados'}), 400
+    csv_str = exportar_csv(df_global)
+    from io import BytesIO
+    buf = BytesIO()
+    buf.write(csv_str.encode('utf-8-sig'))
+    buf.seek(0)
+    return send_file(
+        buf,
+        mimetype='text/csv',
+        as_attachment=True,
+        download_name='Gastos_Exportados.csv'
+    )
+
+@app.route('/api/transaccion', methods=['POST'])
+def crear_transaccion():
+    global df_global, nombre_archivo_actual
+    data = request.get_json()
+    try:
+        if df_global is None:
+            df_global = pd.DataFrame(columns=['id', 'fecha', 'concepto', 'ingreso', 'egreso', 'categoria', 'monto', 'mes', 'año', 'semana'])
+        df_global = add_transaccion(
+            df_global,
+            fecha=data.get('fecha'),
+            concepto=data.get('concepto'),
+            ingreso=data.get('ingreso', 0),
+            egreso=data.get('egreso', 0),
+            categoria=data.get('categoria')
+        )
+        if not nombre_archivo_actual:
+            nombre_archivo_actual = 'datos.csv'
+        _df_to_cache(df_global, nombre_archivo_actual)
+        meses = meses_disponibles(df_global)
+        return jsonify({
+            'mensaje': 'Transacción creada',
+            'id': int(df_global['id'].max()),
+            'meses': meses,
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/transaccion/<int:id>', methods=['PUT'])
+def editar_transaccion(id):
+    global df_global
+    if df_global is None:
+        return jsonify({'error': 'No hay datos cargados'}), 400
+    data = request.get_json()
+    try:
+        df_global = update_transaccion(
+            df_global, id,
+            fecha=data.get('fecha'),
+            concepto=data.get('concepto'),
+            ingreso=data.get('ingreso', 0),
+            egreso=data.get('egreso', 0),
+            categoria=data.get('categoria')
+        )
+        _df_to_cache(df_global, nombre_archivo_actual or 'datos.csv')
+        return jsonify({'mensaje': 'Transacción actualizada'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/transaccion/<int:id>', methods=['DELETE'])
+def eliminar_transaccion(id):
+    global df_global
+    if df_global is None:
+        return jsonify({'error': 'No hay datos cargados'}), 400
+    try:
+        df_global = delete_transaccion(df_global, id)
+        _df_to_cache(df_global, nombre_archivo_actual or 'datos.csv')
+        return jsonify({'mensaje': 'Transacción eliminada'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="/static/css/style.css?v=2">
+  <link rel="stylesheet" href="/static/css/style.css?v=6">
 </head>
 <body>
   <div class="app">
@@ -85,6 +85,12 @@
             <span class="month-label" id="monthLabel">Julio 2026</span>
             <button class="month-nav" id="nextMonth"><i class="fas fa-chevron-right"></i></button>
           </div>
+          <button class="btn btn-primary" id="nuevaTransaccionTop">
+            <i class="fas fa-plus"></i> Nueva
+          </button>
+          <button class="btn btn-primary" id="exportCsv" title="Exportar CSV">
+            <i class="fas fa-file-csv"></i> CSV
+          </button>
           <button class="btn btn-primary" id="exportPdf">
             <i class="fas fa-file-pdf"></i> Exportar PDF
           </button>
@@ -101,6 +107,10 @@
           <p class="empty-hint">Columnas esperadas: <strong>Fecha</strong>, <strong>Concepto</strong>, <strong>Ingreso</strong>, <strong>Egreso</strong></p>
           <button class="btn btn-primary btn-lg" id="emptyUploadBtn">
             <i class="fas fa-upload"></i> Cargar Archivo
+          </button>
+          <br><br>
+          <button class="btn btn-primary btn-lg" id="emptyNuevaBtn">
+            <i class="fas fa-plus"></i> Nueva Transacción
           </button>
         </div>
 
@@ -168,6 +178,7 @@
               <h3>Transacciones Recientes</h3>
               <div class="card-filters">
                 <input type="text" class="search-input" id="searchInput" placeholder="Buscar transacción...">
+                <button class="btn btn-primary" id="nuevaTransaccion"><i class="fas fa-plus"></i> Nueva</button>
               </div>
             </div>
             <div class="card-body">
@@ -180,6 +191,7 @@
                       <th>Categoría</th>
                       <th>Ingreso</th>
                       <th>Egreso</th>
+                      <th style="width:90px">Acciones</th>
                     </tr>
                   </thead>
                   <tbody id="tableBody"></tbody>
@@ -193,12 +205,50 @@
     </main>
   </div>
 
+  <div class="modal-overlay" id="modalOverlay" hidden>
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modalTitle">Nueva Transacción</h3>
+        <button class="modal-close" id="modalClose"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="transactionForm" class="modal-body">
+        <input type="hidden" id="txId" value="">
+        <div class="form-group">
+          <label for="txFecha">Fecha</label>
+          <input type="text" id="txFecha" placeholder="dd/mm/aaaa" required>
+        </div>
+        <div class="form-group">
+          <label for="txConcepto">Concepto</label>
+          <input type="text" id="txConcepto" placeholder="Descripción" required>
+        </div>
+        <div class="form-group">
+          <label for="txCategoria">Categoría</label>
+          <select id="txCategoria"></select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="txIngreso">Ingreso</label>
+            <input type="number" id="txIngreso" placeholder="0.00" min="0" step="0.01">
+          </div>
+          <div class="form-group">
+            <label for="txEgreso">Egreso</label>
+            <input type="number" id="txEgreso" placeholder="0.00" min="0" step="0.01">
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="modalCancel">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="modalSave">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="/static/js/theme.js?v=2"></script>
-  <script src="/static/js/charts.js?v=2"></script>
-  <script src="/static/js/app.js?v=2"></script>
+  <script src="/static/js/theme.js?v=6"></script>
+  <script src="/static/js/charts.js?v=6"></script>
+  <script src="/static/js/app.js?v=6"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(() => {});

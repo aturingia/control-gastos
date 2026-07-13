@@ -1,12 +1,11 @@
 Fecha,concepto,categoria,ingreso,egreso
+1/7/2026,reparacion,trabajo,28000
 1/7/2026,reparacion,trabajo,56000
-2/7/2026,efectivo,otros,10000
-2/7/2026,almacen,despensas,,7000
-3/7/2026,colectivo,viáticos,,5000
-4/7/2026,verduleria,despensas,,8000
-5/7/2026,ecommerce,e-commerce,,15000
-6/7/2026,paseo,suntuarios,,7000
-6/7/2026,ferreteria,refacciones,,2500
-7/7/2026,inmibiliaria,alquiler,,1500
+2/7/2026,repuestos,insumos,,25000
+3/7/2026,transferencia,prestamos,,10000
+5/7/2026,gas,servicios,,20000
+9/7/2026,producto,e-commerce,,15000
+9/7/2026,efectivo,otros,,10000
+
 
 

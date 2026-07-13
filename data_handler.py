@@ -38,6 +38,7 @@ def load_data(filepath):
     df['mes'] = df['fecha'].dt.month
     df['año'] = df['fecha'].dt.year
     df['semana'] = df['fecha'].dt.isocalendar().week
+    df['id'] = range(len(df))
     return df.dropna(subset=['fecha'])
 
 CATEGORIAS = [
@@ -113,3 +114,55 @@ def resumen_por_periodo(df, periodo='mensual', año=None, mes=None):
 def meses_disponibles(df):
     meses = df[['año', 'mes']].drop_duplicates().sort_values(['año', 'mes'])
     return [{'año': int(r['año']), 'mes': int(r['mes'])} for _, r in meses.iterrows()]
+
+def exportar_csv(df):
+    cols = ['fecha', 'concepto', 'ingreso', 'egreso', 'categoria']
+    out = df[cols].copy()
+    out['fecha'] = out['fecha'].dt.strftime('%d/%m/%Y')
+    return out.to_csv(index=False, encoding='utf-8-sig')
+
+def add_transaccion(df, fecha, concepto, ingreso, egreso, categoria=None):
+    new_id = int(df['id'].max() + 1) if len(df) else 0
+    parsed = pd.to_datetime(fecha, dayfirst=True, errors='coerce')
+    if pd.isna(parsed):
+        raise ValueError('Fecha inválida')
+    cat = categoria if categoria else categorizar(concepto)
+    row = {
+        'id': new_id,
+        'fecha': parsed,
+        'concepto': concepto,
+        'ingreso': float(ingreso),
+        'egreso': float(egreso),
+        'categoria': cat,
+        'monto': float(ingreso) - float(egreso),
+        'mes': parsed.month,
+        'año': parsed.year,
+        'semana': parsed.isocalendar().week,
+    }
+    new_df = pd.DataFrame([row])
+    return pd.concat([df, new_df], ignore_index=True)
+
+def update_transaccion(df, id, fecha, concepto, ingreso, egreso, categoria=None):
+    df = df.copy()
+    mask = df['id'] == id
+    if not mask.any():
+        raise ValueError(f'Transacción con id {id} no encontrada')
+    parsed = pd.to_datetime(fecha, dayfirst=True, errors='coerce')
+    if pd.isna(parsed):
+        raise ValueError('Fecha inválida')
+    cat = categoria if categoria else categorizar(concepto)
+    df.loc[mask, 'fecha'] = parsed
+    df.loc[mask, 'concepto'] = concepto
+    df.loc[mask, 'ingreso'] = float(ingreso)
+    df.loc[mask, 'egreso'] = float(egreso)
+    df.loc[mask, 'categoria'] = cat
+    df.loc[mask, 'monto'] = float(ingreso) - float(egreso)
+    df.loc[mask, 'mes'] = parsed.month
+    df.loc[mask, 'año'] = parsed.year
+    df.loc[mask, 'semana'] = parsed.isocalendar().week
+    return df
+
+def delete_transaccion(df, id):
+    df = df[df['id'] != id].copy()
+    df.reset_index(drop=True, inplace=True)
+    return df

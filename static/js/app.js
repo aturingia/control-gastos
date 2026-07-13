@@ -17,7 +17,22 @@
     fileCount: document.getElementById('fileCount'),
     uploadProgress: document.getElementById('uploadProgress'),
     emptyUploadBtn: document.getElementById('emptyUploadBtn'),
+    emptyNuevaBtn: document.getElementById('emptyNuevaBtn'),
     exportPdf: document.getElementById('exportPdf'),
+    exportCsv: document.getElementById('exportCsv'),
+    nuevaTransaccion: document.getElementById('nuevaTransaccion'),
+    nuevaTransaccionTop: document.getElementById('nuevaTransaccionTop'),
+    modalOverlay: document.getElementById('modalOverlay'),
+    modalTitle: document.getElementById('modalTitle'),
+    modalClose: document.getElementById('modalClose'),
+    modalCancel: document.getElementById('modalCancel'),
+    transactionForm: document.getElementById('transactionForm'),
+    txId: document.getElementById('txId'),
+    txFecha: document.getElementById('txFecha'),
+    txConcepto: document.getElementById('txConcepto'),
+    txCategoria: document.getElementById('txCategoria'),
+    txIngreso: document.getElementById('txIngreso'),
+    txEgreso: document.getElementById('txEgreso'),
     kpiIngresos: document.getElementById('kpiIngresos'),
     kpiGastos: document.getElementById('kpiGastos'),
     kpiBalance: document.getElementById('kpiBalance'),
@@ -128,6 +143,7 @@
       renderTable(data.transacciones || []);
       DOM.pageSubtitle.textContent = `${MESES[state.mes] || ''} ${state.año || ''} · ${data.total_transacciones} transacciones`;
       DOM.monthLabel.textContent = `${MESES[state.mes] || ''} ${state.año || ''}`;
+      DOM.fileCount.textContent = data.total_transacciones + ' reg.';
     }).catch(() => {});
   }
 
@@ -135,7 +151,7 @@
     const tbody = DOM.tableBody;
     tbody.innerHTML = '';
     if (!transacciones || transacciones.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--text-muted);">Sin transacciones</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-muted);">Sin transacciones</td></tr>';
       return;
     }
     transacciones.forEach(t => {
@@ -147,8 +163,18 @@
         <td><span class="category-badge ${catClass}">${t.categoria || 'Otros'}</span></td>
         <td class="amount-income">${t.ingreso > 0 ? formatCurrency(t.ingreso) : '-'}</td>
         <td class="amount-expense">${t.egreso > 0 ? formatCurrency(t.egreso) : '-'}</td>
+        <td class="actions-cell">
+          <button class="btn-icon btn-edit" data-id="${t.id}" title="Editar"><i class="fas fa-edit"></i></button>
+          <button class="btn-icon btn-delete" data-id="${t.id}" title="Eliminar"><i class="fas fa-trash"></i></button>
+        </td>
       `;
       tbody.appendChild(tr);
+    });
+    tbody.querySelectorAll('.btn-edit').forEach(btn => {
+      btn.addEventListener('click', () => editarTransaccion(parseInt(btn.dataset.id)));
+    });
+    tbody.querySelectorAll('.btn-delete').forEach(btn => {
+      btn.addEventListener('click', () => eliminarTransaccion(parseInt(btn.dataset.id)));
     });
   }
 
@@ -189,6 +215,125 @@
     .catch(err => showToast('Error al generar PDF: ' + err.message, 'error'));
   }
 
+  function exportarCSV() {
+    if (!state.dataCargada) { showToast('No hay datos para exportar', 'error'); return; }
+    fetch('/api/exportar-csv')
+      .then(r => {
+        if (!r.ok) throw new Error('Error al exportar CSV');
+        return r.blob();
+      })
+      .then(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Gastos_Exportados.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('CSV descargado correctamente', 'success');
+      })
+      .catch(err => showToast('Error: ' + err.message, 'error'));
+  }
+
+  function abrirModal(tx = null) {
+    DOM.modalOverlay.hidden = false;
+    DOM.transactionForm.reset();
+    DOM.txId.value = '';
+    if (tx) {
+      DOM.modalTitle.textContent = 'Editar Transacción';
+      DOM.txId.value = tx.id;
+      DOM.txFecha.value = tx.fecha || '';
+      DOM.txConcepto.value = tx.concepto || '';
+      DOM.txCategoria.value = tx.categoria || 'otros';
+      DOM.txIngreso.value = tx.ingreso || '';
+      DOM.txEgreso.value = tx.egreso || '';
+    } else {
+      DOM.modalTitle.textContent = 'Nueva Transacción';
+      const hoy = new Date();
+      const dd = String(hoy.getDate()).padStart(2, '0');
+      const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+      const yyyy = hoy.getFullYear();
+      DOM.txFecha.value = `${dd}/${mm}/${yyyy}`;
+    }
+  }
+
+  function cerrarModal() {
+    DOM.modalOverlay.hidden = true;
+  }
+
+  function guardarTransaccion(e) {
+    e.preventDefault();
+    const id = DOM.txId.value;
+    const payload = {
+      fecha: DOM.txFecha.value.trim(),
+      concepto: DOM.txConcepto.value.trim(),
+      categoria: DOM.txCategoria.value,
+      ingreso: parseFloat(DOM.txIngreso.value) || 0,
+      egreso: parseFloat(DOM.txEgreso.value) || 0,
+    };
+    if (!payload.fecha || !payload.concepto) {
+      showToast('Completa todos los campos requeridos', 'error');
+      return;
+    }
+    const url = id ? `/api/transaccion/${id}` : '/api/transaccion';
+    const method = id ? 'PUT' : 'POST';
+    fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) { showToast('Error: ' + data.error, 'error'); return; }
+      showToast(id ? 'Transacción actualizada' : 'Transacción creada', 'success');
+      cerrarModal();
+      if (!id && data.meses) {
+        state.dataCargada = true;
+        state.mesesDisponibles = data.meses;
+        const ultimo = data.meses[data.meses.length - 1];
+        state.mes = ultimo.mes;
+        state.año = ultimo.año;
+      }
+      actualizarDashboard();
+    })
+    .catch(err => showToast('Error al guardar', 'error'));
+  }
+
+  function editarTransaccion(id) {
+    if (!state.dataCargada) return;
+    cargarDatos().then(data => {
+      if (data.error) return;
+      const tx = data.transacciones.find(t => t.id === id);
+      if (tx) abrirModal(tx);
+      else showToast('Transacción no encontrada', 'error');
+    }).catch(() => {});
+  }
+
+  function eliminarTransaccion(id) {
+    if (!confirm('¿Eliminar esta transacción?')) return;
+    fetch(`/api/transaccion/${id}`, { method: 'DELETE' })
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) { showToast('Error: ' + data.error, 'error'); return; }
+        showToast('Transacción eliminada', 'success');
+        actualizarDashboard();
+      })
+      .catch(err => showToast('Error al eliminar', 'error'));
+  }
+
+  function cargarCategoriasDropdown() {
+    fetch('/api/categorias')
+      .then(r => r.json())
+      .then(cats => {
+        const sel = DOM.txCategoria;
+        sel.innerHTML = cats.map(c => `<option value="${c}">${c.charAt(0).toUpperCase() + c.slice(1)}</option>`).join('');
+      })
+      .catch(() => {});
+  }
+
+  cargarCategoriasDropdown();
+
   DOM.periodBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       DOM.periodBtns.forEach(b => b.classList.remove('active'));
@@ -220,6 +365,7 @@
 
   DOM.uploadArea.addEventListener('click', () => { closeSidebar(); DOM.fileInput.click(); });
   DOM.emptyUploadBtn.addEventListener('click', () => DOM.fileInput.click());
+  DOM.emptyNuevaBtn.addEventListener('click', () => abrirModal());
 
   DOM.uploadArea.addEventListener('dragover', e => {
     e.preventDefault();
@@ -241,6 +387,13 @@
   });
 
   DOM.exportPdf.addEventListener('click', exportarPDF);
+  DOM.exportCsv.addEventListener('click', exportarCSV);
+  DOM.nuevaTransaccion.addEventListener('click', () => abrirModal());
+  DOM.nuevaTransaccionTop.addEventListener('click', () => abrirModal());
+  DOM.modalClose.addEventListener('click', cerrarModal);
+  DOM.modalCancel.addEventListener('click', cerrarModal);
+  DOM.modalOverlay.addEventListener('click', e => { if (e.target === DOM.modalOverlay) cerrarModal(); });
+  DOM.transactionForm.addEventListener('submit', guardarTransaccion);
 
   DOM.searchInput.addEventListener('input', function() {
     const q = this.value.toLowerCase();
